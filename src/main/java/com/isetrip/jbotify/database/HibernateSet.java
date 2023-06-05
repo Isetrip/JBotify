@@ -1,12 +1,13 @@
 package com.isetrip.jbotify.database;
 
-import org.hibernate.Criteria;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.util.*;
 
 public final class HibernateSet<E> implements Set<E> {
@@ -23,8 +24,11 @@ public final class HibernateSet<E> implements Set<E> {
     public int size() {
         Session session = sessionFactory.openSession();
         try {
-            Criteria criteria = session.createCriteria(entityType);
-            return criteria.list().size();
+            CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+            CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
+            Root<E> root = criteriaQuery.from(entityType);
+            criteriaQuery.select(criteriaBuilder.count(root));
+            return session.createQuery(criteriaQuery).getSingleResult().intValue();
         } finally {
             session.close();
         }
@@ -49,8 +53,11 @@ public final class HibernateSet<E> implements Set<E> {
     public Iterator<E> iterator() {
         Session session = sessionFactory.openSession();
         try {
-            Criteria criteria = session.createCriteria(entityType);
-            List<E> entities = criteria.list();
+            CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+            CriteriaQuery<E> criteriaQuery = criteriaBuilder.createQuery(entityType);
+            Root<E> root = criteriaQuery.from(entityType);
+            criteriaQuery.select(root);
+            List<E> entities = session.createQuery(criteriaQuery).getResultList();
             return entities.iterator();
         } finally {
             session.close();
@@ -61,8 +68,11 @@ public final class HibernateSet<E> implements Set<E> {
     public Object[] toArray() {
         Session session = sessionFactory.openSession();
         try {
-            Criteria criteria = session.createCriteria(entityType);
-            List<E> entities = criteria.list();
+            CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+            CriteriaQuery<E> criteriaQuery = criteriaBuilder.createQuery(entityType);
+            Root<E> root = criteriaQuery.from(entityType);
+            criteriaQuery.select(root);
+            List<E> entities = session.createQuery(criteriaQuery).getResultList();
             return entities.toArray();
         } finally {
             session.close();
@@ -73,8 +83,11 @@ public final class HibernateSet<E> implements Set<E> {
     public <T> T[] toArray(T[] a) {
         Session session = sessionFactory.openSession();
         try {
-            Criteria criteria = session.createCriteria(entityType);
-            List<E> entities = criteria.list();
+            CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+            CriteriaQuery<E> criteriaQuery = criteriaBuilder.createQuery(entityType);
+            Root<E> root = criteriaQuery.from(entityType);
+            criteriaQuery.select(root);
+            List<E> entities = session.createQuery(criteriaQuery).getResultList();
             return entities.toArray(a);
         } finally {
             session.close();
@@ -119,9 +132,12 @@ public final class HibernateSet<E> implements Set<E> {
     public boolean containsAll(Collection<?> collection) {
         Session session = sessionFactory.openSession();
         try {
-            Criteria criteria = session.createCriteria(entityType);
-            criteria.add(org.hibernate.criterion.Restrictions.in("id", collection));
-            List<E> entities = criteria.list();
+            CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+            CriteriaQuery<E> criteriaQuery = criteriaBuilder.createQuery(entityType);
+            Root<E> root = criteriaQuery.from(entityType);
+            criteriaQuery.select(root);
+            criteriaQuery.where(root.get("id").in(collection));
+            List<E> entities = session.createQuery(criteriaQuery).getResultList();
             return entities.size() == collection.size();
         } finally {
             session.close();
@@ -152,8 +168,11 @@ public final class HibernateSet<E> implements Set<E> {
         Session session = sessionFactory.openSession();
         try {
             session.beginTransaction();
-            Criteria criteria = session.createCriteria(entityType);
-            List<E> entities = criteria.list();
+            CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+            CriteriaQuery<E> criteriaQuery = criteriaBuilder.createQuery(entityType);
+            Root<E> root = criteriaQuery.from(entityType);
+            criteriaQuery.select(root);
+            List<E> entities = session.createQuery(criteriaQuery).getResultList();
             for (E entity : entities) {
                 if (!collection.contains(entity)) {
                     session.delete(entity);
@@ -204,15 +223,15 @@ public final class HibernateSet<E> implements Set<E> {
         }
     }
 
-
     public List<E> findByField(String fieldName, Object value) {
         Session session = sessionFactory.openSession();
         try {
-            Field field = entityType.getDeclaredField(fieldName);
-            field.setAccessible(true);
-            Criteria criteria = session.createCriteria(entityType);
-            criteria.add(org.hibernate.criterion.Restrictions.eq(fieldName, value));
-            List<E> entities = criteria.list();
+            CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+            CriteriaQuery<E> criteriaQuery = criteriaBuilder.createQuery(entityType);
+            Root<E> root = criteriaQuery.from(entityType);
+            criteriaQuery.select(root);
+            criteriaQuery.where(criteriaBuilder.equal(root.get(fieldName), value));
+            List<E> entities = session.createQuery(criteriaQuery).getResultList();
             return entities;
         } catch (Exception e) {
             e.printStackTrace();
@@ -226,7 +245,7 @@ public final class HibernateSet<E> implements Set<E> {
         Session session = sessionFactory.openSession();
         try {
             session.beginTransaction();
-            E existingEntity = (E) session.merge(entity);
+            session.merge(entity);
             session.getTransaction().commit();
             return true;
         } catch (Exception ex) {
@@ -242,4 +261,5 @@ public final class HibernateSet<E> implements Set<E> {
         sessionFactory.close();
     }
 }
+
 
