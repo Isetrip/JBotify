@@ -27,13 +27,13 @@ public class CommandRegister {
         String command;
         String[] commandArgs;
 
-        Pattern pattern = Pattern.compile("/(\\w+)(?:\\s+(.*))?");
+        Pattern pattern = Pattern.compile("/(\\w+)(?:[\\s_]+(.*))?");
         Matcher matcher = pattern.matcher(line);
 
         if (matcher.matches()) {
             command = matcher.group(1);
             String argsString = matcher.group(2);
-            commandArgs = (argsString != null) ? argsString.split("\\s+") : new String[0];
+            commandArgs = (argsString != null) ? argsString.split("[\\s_]+") : new String[0];
         } else return false;
 
         if (this.COMMANDS_MAP.containsKey(command)) {
