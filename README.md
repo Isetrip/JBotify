@@ -17,7 +17,7 @@ To include JBotify in your project, you can use either Gradle or Maven.
 To get started with JBotify, follow these steps:
 
 <ul>
-    <li>Download the latest version from the [official GitHub repository](https://github.com/Isetrip/JBotify/releases/tag/untagged-a03183ed150be61d701b).</li>
+    <li>Download the latest version from the official GitHub repository(https://github.com/Isetrip/JBotify/releases/tag/untagged-a03183ed150be61d701b).</li>
     <li>Create a folder named libs in your project directory.</li>
     <li>Place the downloaded Mega Framework file into the libs folder.</li>
     <li>Add the following dependencies to your build system:</li>
