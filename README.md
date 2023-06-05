@@ -71,7 +71,7 @@ JBotify - це Java-фреймворк, призначений для зручн
 
 ```groovy
 dependencies {
-    implementation 'com.github.isetrip:JBotify:1.1.0'
+    implementation 'com.github.isetrip:JBotify:1.1.0-SHAPSHOT'
 }
 ```
 
@@ -84,7 +84,7 @@ dependencies {
     <dependency>
         <groupId>com.github.isetrip</groupId>
         <artifactId>JBotify</artifactId>
-        <version>1.1.0</version>
+        <version>1.1.0-SHAPSHOT</version>
     </dependency>
 </dependencies>
 
