@@ -5,9 +5,12 @@ import com.isetrip.jbotify.buttons.IKeyboardButton;
 import com.isetrip.jbotify.commands.CommandBase;
 import com.isetrip.jbotify.commands.CommandRegister;
 import com.isetrip.jbotify.data.BotData;
+import com.isetrip.jbotify.data.JBUser;
+import com.isetrip.jbotify.database.HibernateSet;
 import com.isetrip.jbotify.events.EventsRegister;
 import com.isetrip.jbotify.lang.Lang;
 import com.isetrip.jbotify.lang.LangManager;
+import com.isetrip.jbotify.lang.elements.English;
 import com.isetrip.jbotify.root.annotations.BotEventHandler;
 import com.isetrip.jbotify.root.annotations.RegisterLang;
 import com.isetrip.jbotify.root.annotations.RegisterButton;
@@ -19,6 +22,9 @@ import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -26,6 +32,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.Set;
 
 public class JBotifyApplication {
 
@@ -39,6 +46,8 @@ public class JBotifyApplication {
     private static LangManager langManager;
     @Getter
     private static ButtonsRegistry buttonsRegistry;
+    @Getter
+    private static HibernateSet<JBUser> jbUsersSet;
 
     public static void run(Class mainClazz, String... args) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, IOException, TelegramApiException {
         Log.info("Initialising JBotify... ");
@@ -79,6 +88,7 @@ public class JBotifyApplication {
 
         Log.info("Initialising Languages... ");
         langManager = new LangManager();
+        langManager.loadLanguageProperties(new English());
         classes = ClassScanner.findAnnotatedClasses(mainClazz.getPackage().getName(), RegisterLang.class);
         for (Class<?> clazz : classes) {
             if (Lang.class.isAssignableFrom(clazz)) {
@@ -95,7 +105,28 @@ public class JBotifyApplication {
             }
         }
 
+        Log.info("Initialising Users Data... ");
+        jbUsersSet = new HibernateSet<>(JBUser.class);
+
+
+        System.out.println("    ___  ________  ________  _________  ___  ________ ___    ___          \n" +
+                "   |\\  \\|\\   __  \\|\\   __  \\|\\___   ___\\\\  \\|\\  _____\\\\  \\  /  /|___      \n" +
+                "   \\ \\  \\ \\  \\|\\ /\\ \\  \\|\\  \\|___ \\  \\_\\ \\  \\ \\  \\__/\\ \\  \\/  / /\\__\\     \n" +
+                " __ \\ \\  \\ \\   __  \\ \\  \\\\\\  \\   \\ \\  \\ \\ \\  \\ \\   __\\\\ \\    / /\\|__|     \n" +
+                "|\\  \\\\_\\  \\ \\  \\|\\  \\ \\  \\\\\\  \\   \\ \\  \\ \\ \\  \\ \\  \\_| \\/  /  /     ___   \n" +
+                "\\ \\________\\ \\_______\\ \\_______\\   \\ \\__\\ \\ \\__\\ \\__\\__/  / /      |\\  \\  \n" +
+                " \\|________|\\|_______|\\|_______|    \\|__|  \\|__|\\|__|\\___/ /       \\ \\  \\ \n" +
+                "                                                    \\|___|/        _\\/  /|\n" +
+                "                                                                  |\\___/ /\n" +
+                "                                                                  \\|___|/ ");
+        System.out.println("-: JBotify :-: v.1.0.0 :-");
+
         Log.info("JBotify is up and running and ready to go!");
+
+        Thread printingHook = new Thread(() -> {
+            jbUsersSet.close();
+        });
+        Runtime.getRuntime().addShutdownHook(printingHook);
     }
 
     public static String getStackTrace(final Throwable throwable) {

@@ -1,18 +1,18 @@
-package com.isetrip.jbotify.examples.langs;
+package com.isetrip.jbotify.lang.elements;
 
 import com.isetrip.jbotify.lang.Lang;
 import com.isetrip.jbotify.root.annotations.RegisterLang;
 
 @RegisterLang
-public class Ukrainian implements Lang {
+public class English implements Lang {
 
     @Override
     public String name() {
-        return "ua_UK";
+        return "en_UK";
     }
 
     @Override
     public String button() {
-        return "Українська\uD83C\uDDFA\uD83C\uDDE6";
+        return "English\uD83C\uDDEC\uD83C\uDDE7";
     }
 }

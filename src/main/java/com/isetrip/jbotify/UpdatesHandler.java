@@ -3,7 +3,9 @@ package com.isetrip.jbotify;
 import com.isetrip.jbotify.buttons.ButtonType;
 import com.isetrip.jbotify.buttons.ButtonsRegistry;
 import com.isetrip.jbotify.data.BotData;
+import com.isetrip.jbotify.data.JBUser;
 import com.isetrip.jbotify.events.elements.CallbackQueryEvent;
+import com.isetrip.jbotify.events.elements.LanguageChosenEvent;
 import com.isetrip.jbotify.events.elements.MessageReceiveEvent;
 import com.isetrip.jbotify.logs.Log;
 import com.isetrip.jbotify.lang.Lang;
@@ -40,24 +42,48 @@ public class UpdatesHandler extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         if (update.hasMessage()) {
             Lang langTemp = null;
+            JBUser user = JBotifyApplication.getJbUsersSet().findByField("userId", update.getMessage().getFrom().getId().toString()).stream()
+                    .findFirst()
+                    .orElse(null);
+            if (user == null) {
+                user = JBUser.builder()
+                        .userId(update.getMessage().getFrom().getId().toString())
+                        .userName(update.getMessage().getFrom().getUserName())
+                        .userLang("en_UK")
+                        .build();
+                JBotifyApplication.getJbUsersSet().add(user);
+            }
             String text = update.getMessage().getText();
+            Log.info(String.format("Message{%s}:%s", update.getMessage().getChatId(), text));
             if (text.startsWith("/")) {
                 JBotifyApplication.getCommandRegister().use(this, text, update);
             } else if ((langTemp = LangUtils.getLangFromButton(text)) != null) {
-                // TODO: 05.06.2023 Set User lang
-            } else if (!JBotifyApplication.getButtonsRegistry().use(text, update, LangUtils.of("ua_UK"))) {// TODO: 05.06.2023 Change to user lang or default
-                JBotifyApplication.getEventsRegister().publish(new MessageReceiveEvent(this, update, update.getMessage(), update.getMessage().getChatId().toString()));
+                user.setUserLang(langTemp.name());
+                JBotifyApplication.getJbUsersSet().update(user);
+                JBotifyApplication.getEventsRegister().publish(new LanguageChosenEvent(this, langTemp, update.getMessage().getChatId().toString(), update, user));
+            } else if (!JBotifyApplication.getButtonsRegistry().use(text, update, user.getUserLang())) {
+                JBotifyApplication.getEventsRegister().publish(new MessageReceiveEvent(this, update, update.getMessage(), update.getMessage().getChatId().toString(), user));
             }
         } else if (update.hasCallbackQuery()) {
-            JBotifyApplication.getEventsRegister().publish(new CallbackQueryEvent(this, update, update.getCallbackQuery(), update.getCallbackQuery().getMessage().getChatId().toString()));
+            JBUser user = JBotifyApplication.getJbUsersSet().findByField("userId", update.getCallbackQuery().getFrom().getId().toString()).stream()
+                    .findFirst()
+                    .orElse(null);
+            if (user == null) {
+                user = JBUser.builder()
+                        .userId(update.getCallbackQuery().getFrom().getId().toString())
+                        .userName(update.getCallbackQuery().getFrom().getUserName())
+                        .userLang("en_UK")
+                        .build();
+                JBotifyApplication.getJbUsersSet().add(user);
+            }
+            Log.info(String.format("CallbackQuery{%s}:%s", update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().toString()));
+            JBotifyApplication.getEventsRegister().publish(new CallbackQueryEvent(this, update, update.getCallbackQuery(), update.getCallbackQuery().getMessage().getChatId().toString(), user));
         }
     }
 
     public void disclosure(String message) {
-        //DataManager.getUsers().forEach(chatid -> sendMessage(message, chatid, true, DataManager.getLang(chatid)));
+        JBotifyApplication.getJbUsersSet().forEach(user -> sendMessage(message, user.getUserId(), true, user.getUserLang()));
     }
-
-    // TODO: 05.06.2023 Make UsersStorage 
 
     public void sendMessage(String message, String chatId, boolean ignore, Lang lang, String... btns) {
         SendMessage sendMessage = new SendMessage();
