@@ -25,6 +25,7 @@ public class JBUser {
     @Setter
     @Column(name = "userLang")
     private String userLang;
+    @Getter
     @Setter
     @Column(name = "chatId")
     private String chatId;
