@@ -14,6 +14,14 @@ JBotify is a Java framework designed for convenient bot development. It provides
 ## Installation
 
 To include JBotify in your project, you can use either Gradle or Maven.
+To get started with JBotify, follow these steps:
+
+<ul>
+    <li>Download the latest version from the [official GitHub repository](https://github.com/Isetrip/JBotify/releases/tag/untagged-a03183ed150be61d701b).</li>
+    <li>Create a folder named libs in your project directory.</li>
+    <li>Place the downloaded Mega Framework file into the libs folder.</li>
+    <li>Add the following dependencies to your build system:</li>
+</ul>
 
 ### Gradle
 
@@ -21,7 +29,7 @@ Add the following dependency to your `build.gradle` file:
 
 ```groovy
 dependencies {
-    implementation 'com.github.isetrip:JBotify:1.1.0-SHAPSHOT'
+    implementation files('libs/JBotify-1.1.0-SHAPSHOT-sources.jar')
 }
 ```
 
@@ -32,11 +40,14 @@ Add the following dependency to your `pom.xml` file:
 ```xml
 <dependencies>
     <dependency>
-        <groupId>com.github.isetrip</groupId>
-        <artifactId>JBotify</artifactId>
-        <version>1.1.0-SHAPSHOT</version>
+        <groupId>com.isetrip</groupId>
+        <artifactId>JBotify-SHAPSHOT</artifactId>
+        <version>1.1.0</version>
+        <scope>system</scope>
+        <systemPath>${basedir}/libs/JBotify-1.1.0-SHAPSHOT-sources.jar</systemPath>
     </dependency>
 </dependencies>
+
 
 ```
 
@@ -47,53 +58,3 @@ Examples and documentation can be found on the [GitHub repository](https://githu
 ### Issues
 
 If you encounter any issues or have feature requests, please [submit an issue](https://github.com/Isetrip/JBotify/issues) on GitHub.
-
-# JBotify - Українською
-
-JBotify - це Java-фреймворк, призначений для зручної розробки ботів. Він надає широкий спектр готових функцій та механік для легкої взаємодії з Telegram-ботами.
-
-## Особливості
-
-<ul>
-  <li>Простий у використанні Java фреймворк для розробки ботів.</li>
-  <li>Надає різноманітні вбудовані функції та механізми для Telegram-ботів.</li>
-  <li>Підтримує інтеграцію з популярними базами даних, такими як SQLite і MySQL.</li>
-  <li>Створено на основі таких бібліотек, як Hibernate, Lombok і т.д.</li>
-</ul>
-
-## Встановлення
-
-Щоб включити JBotify у свій проект, ви можете використовувати Gradle або Maven.
-
-### Gradle
-
-Додайте наступну залежність до вашого файлу `build.gradle`:
-
-```groovy
-dependencies {
-    implementation 'com.github.isetrip:JBotify:1.1.0-SHAPSHOT'
-}
-```
-
-### Maven
-
-Додайте наступну залежність до вашого файлу `pom.xml`:
-
-```xml
-<dependencies>
-    <dependency>
-        <groupId>com.github.isetrip</groupId>
-        <artifactId>JBotify</artifactId>
-        <version>1.1.0-SHAPSHOT</version>
-    </dependency>
-</dependencies>
-
-```
-
-### Використання
-
-Приклади та документацію можна знайти на [GitHub repository](https://github.com/Isetrip/JBotify/tree/main/src/main/java/com/isetrip/jbotify/examples).
-
-### Issues
-
-Якщо ви зіткнулися з будь-якими проблемами або маєте побажання щодо функціональності, будь ласка, [напишіть проблему](https://github.com/Isetrip/JBotify/issues) на GitHub.
