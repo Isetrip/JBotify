@@ -1,5 +1,6 @@
 package com.isetrip.jbotify.buttons;
 
+import com.isetrip.jbotify.UpdatesHandler;
 import com.isetrip.jbotify.lang.Lang;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -13,6 +14,6 @@ public interface IKeyboardButton {
 
     public boolean canExecute(String id);
 
-    public void process(Lang lang, Update update);
+    public void process(UpdatesHandler updatesHandler, Lang lang, Update update);
 
 }

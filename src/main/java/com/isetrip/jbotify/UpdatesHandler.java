@@ -61,7 +61,7 @@ public class UpdatesHandler extends TelegramLongPollingBot {
                 user.setUserLang(langTemp.name());
                 JBotifyApplication.getJbUsersSet().update(user);
                 JBotifyApplication.getEventsRegister().publish(new LanguageChosenEvent(this, langTemp, update.getMessage().getChatId().toString(), update, user));
-            } else if (!JBotifyApplication.getButtonsRegistry().use(text, update, user.getUserLang())) {
+            } else if (!JBotifyApplication.getButtonsRegistry().use(this, text, update, user.getUserLang())) {
                 JBotifyApplication.getEventsRegister().publish(new MessageReceiveEvent(this, update, update.getMessage(), update.getMessage().getChatId().toString(), user));
             }
         } else if (update.hasCallbackQuery()) {

@@ -1,6 +1,7 @@
 package com.isetrip.jbotify.buttons;
 
 import com.isetrip.jbotify.JBotifyApplication;
+import com.isetrip.jbotify.UpdatesHandler;
 import com.isetrip.jbotify.lang.Lang;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -27,11 +28,11 @@ public class ButtonsRegistry {
         this.currentIndex++;
     }
 
-    public boolean use(String line, Update update, Lang lang) {
+    public boolean use(UpdatesHandler updatesHandler, String line, Update update, Lang lang) {
         if (this.INDEXES_MAP.containsKey(line)) {
             IKeyboardButton keyboardButton = this.BUTTONS_MAP.get(this.INDEXES_MAP.get(line));
             if (keyboardButton.canExecute(update.getMessage().getChatId().toString())) {
-                keyboardButton.process(lang, update);
+                keyboardButton.process(updatesHandler, lang, update);
                 return true;
             }
         }
