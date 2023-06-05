@@ -50,6 +50,7 @@ public class UpdatesHandler extends TelegramLongPollingBot {
                         .userId(update.getMessage().getFrom().getId().toString())
                         .userName(update.getMessage().getFrom().getUserName())
                         .userLang("en_UK")
+                        .chatId(update.getMessage().getChatId().toString())
                         .build();
                 JBotifyApplication.getJbUsersSet().add(user);
             }
@@ -73,6 +74,7 @@ public class UpdatesHandler extends TelegramLongPollingBot {
                         .userId(update.getCallbackQuery().getFrom().getId().toString())
                         .userName(update.getCallbackQuery().getFrom().getUserName())
                         .userLang("en_UK")
+                        .chatId(update.getCallbackQuery().getMessage().getChatId().toString())
                         .build();
                 JBotifyApplication.getJbUsersSet().add(user);
             }

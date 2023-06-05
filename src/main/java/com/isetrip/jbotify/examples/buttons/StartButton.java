@@ -1,5 +1,6 @@
 package com.isetrip.jbotify.examples.buttons;
 
+import com.isetrip.jbotify.UpdatesHandler;
 import com.isetrip.jbotify.buttons.ButtonType;
 import com.isetrip.jbotify.buttons.IKeyboardButton;
 import com.isetrip.jbotify.lang.Lang;
@@ -31,8 +32,8 @@ public class StartButton implements IKeyboardButton {
     }
 
     @Override
-    public void process(Lang lang, Update update) {
-        System.out.println(true);
+    public void process(UpdatesHandler updatesHandler, Lang lang, Update update) {
+
     }
 
 }

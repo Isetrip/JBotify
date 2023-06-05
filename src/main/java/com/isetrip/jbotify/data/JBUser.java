@@ -25,6 +25,9 @@ public class JBUser {
     @Setter
     @Column(name = "userLang")
     private String userLang;
+    @Setter
+    @Column(name = "chatId")
+    private String chatId;
 
     public Lang getUserLang() {
         return LangUtils.of(this.userLang);
