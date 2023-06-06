@@ -1,5 +1,8 @@
 package com.isetrip.jbotify;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.isetrip.jbotify.buttons.ButtonsRegistry;
 import com.isetrip.jbotify.buttons.IKeyboardButton;
 import com.isetrip.jbotify.commands.CommandBase;
@@ -11,10 +14,7 @@ import com.isetrip.jbotify.events.EventsRegister;
 import com.isetrip.jbotify.lang.Lang;
 import com.isetrip.jbotify.lang.LangManager;
 import com.isetrip.jbotify.lang.elements.English;
-import com.isetrip.jbotify.root.annotations.BotEventHandler;
-import com.isetrip.jbotify.root.annotations.RegisterLang;
-import com.isetrip.jbotify.root.annotations.RegisterButton;
-import com.isetrip.jbotify.root.annotations.RegisterCommand;
+import com.isetrip.jbotify.root.annotations.*;
 import com.isetrip.jbotify.utils.ClassScanner;
 import com.isetrip.jbotify.logs.*;
 import lombok.Getter;
@@ -25,12 +25,11 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.io.InputStream;
 import java.util.Properties;
 import java.util.Set;
 
@@ -107,6 +106,29 @@ public class JBotifyApplication {
 
         Log.info("Initialising Users Data... ");
         jbUsersSet = new HibernateSet<>(JBUser.class);
+
+        Log.info("Initialising Configs... ");
+        Gson gson = new Gson();
+        classes = ClassScanner.findAnnotatedClasses(mainClazz.getPackage().getName(), Configuration.class);
+        for (Class<?> clazz : classes) {
+            Configuration configurationAnnotation = clazz.getAnnotation(Configuration.class);
+            if (configurationAnnotation != null) {
+                String file = configurationAnnotation.configFile();
+                File config = new File(file);
+                if (!config.exists()) continue;
+                Object obj = JsonParser.parseReader(new InputStreamReader(new FileInputStream(config), StandardCharsets.UTF_8));
+                JsonObject items = (JsonObject) obj;
+                Field[] fields = clazz.getDeclaredFields();
+                for (Field field : fields) {
+                    if (field.isAnnotationPresent(Value.class)) {
+                        Value confValue = field.getAnnotation(Value.class);
+                        field.setAccessible(true);
+                        Object value = gson.fromJson(items.get(confValue.name()), field.getType());
+                        field.set(clazz, value);
+                    }
+                }
+            }
+        }
 
 
         System.out.println("    ___  ________  ________  _________  ___  ________ ___    ___          \n" +

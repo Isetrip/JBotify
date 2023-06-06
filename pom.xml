@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.isetrip</groupId>
     <artifactId>jbotify</artifactId>
-    <version>1.1.5</version>
+    <version>1.2.1</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Java framework designed for convenient bot development</description>
@@ -54,6 +54,11 @@
             <groupId>com.github.gwenn</groupId>
             <artifactId>sqlite-dialect</artifactId>
             <version>0.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
         </dependency>
     </dependencies>
 

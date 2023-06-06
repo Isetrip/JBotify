@@ -21,7 +21,7 @@ public class StartCommand implements CommandBase {
     }
 
     @Override
-    public String getApplying() {
+    public String getApplying(Lang lang) {
         return "Starts the bot";
     }
 

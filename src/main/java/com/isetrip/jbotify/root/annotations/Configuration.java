@@ -4,11 +4,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
-public @interface BotEventHandler {
+public @interface Configuration {
 
-    @Retention(RetentionPolicy.RUNTIME)
-    public static @interface Listener {
-
-    }
+    String configFile() default "configarations/config.json";
 
 }

@@ -35,7 +35,7 @@ public class EventsRegister {
             Class<?> clazz = eventHandler.getClass();
             Class<?> argumentType = event.getClass();
             Method method = MethodFinder.findMethodWithArgument(clazz, argumentType);
-            if (method != null) {
+            if (method != null && method.isAnnotationPresent(BotEventHandler.Listener.class)) {
                 Object[] methodArgs = {event};
                 try {
                     method.invoke(eventHandler, methodArgs);
