@@ -14,6 +14,6 @@ public interface CommandBase {
 
     public boolean canExecute(String id);
 
-    public void process(UpdatesHandler updatesHandler, String[] args, Update update);
+    public void process(UpdatesHandler updatesHandler, String[] args, Update update, Lang lang);
 
 }

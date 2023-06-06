@@ -14,6 +14,7 @@ import com.isetrip.jbotify.events.EventsRegister;
 import com.isetrip.jbotify.lang.Lang;
 import com.isetrip.jbotify.lang.LangManager;
 import com.isetrip.jbotify.lang.elements.English;
+import com.isetrip.jbotify.managers.ConfigurationManager;
 import com.isetrip.jbotify.root.annotations.*;
 import com.isetrip.jbotify.utils.ClassScanner;
 import com.isetrip.jbotify.logs.*;
@@ -47,6 +48,8 @@ public class JBotifyApplication {
     private static ButtonsRegistry buttonsRegistry;
     @Getter
     private static HibernateSet<JBUser> jbUsersSet;
+    @Getter
+    private static ConfigurationManager configurationManager;
 
     public static void run(Class mainClazz, String... args) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, IOException, TelegramApiException {
         Log.info("Initialising JBotify... ");
@@ -108,27 +111,7 @@ public class JBotifyApplication {
         jbUsersSet = new HibernateSet<>(JBUser.class);
 
         Log.info("Initialising Configs... ");
-        Gson gson = new Gson();
-        classes = ClassScanner.findAnnotatedClasses(mainClazz.getPackage().getName(), Configuration.class);
-        for (Class<?> clazz : classes) {
-            Configuration configurationAnnotation = clazz.getAnnotation(Configuration.class);
-            if (configurationAnnotation != null) {
-                String file = configurationAnnotation.configFile();
-                File config = new File(file);
-                if (!config.exists()) continue;
-                Object obj = JsonParser.parseReader(new InputStreamReader(new FileInputStream(config), StandardCharsets.UTF_8));
-                JsonObject items = (JsonObject) obj;
-                Field[] fields = clazz.getDeclaredFields();
-                for (Field field : fields) {
-                    if (field.isAnnotationPresent(Value.class)) {
-                        Value confValue = field.getAnnotation(Value.class);
-                        field.setAccessible(true);
-                        Object value = gson.fromJson(items.get(confValue.name()), field.getType());
-                        field.set(clazz, value);
-                    }
-                }
-            }
-        }
+        configurationManager = new ConfigurationManager(ClassScanner.findAnnotatedClasses(mainClazz.getPackage().getName(), Configuration.class));
 
 
         System.out.println("    ___  ________  ________  _________  ___  ________ ___    ___          \n" +

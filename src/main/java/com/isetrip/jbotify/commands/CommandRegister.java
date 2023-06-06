@@ -1,6 +1,7 @@
 package com.isetrip.jbotify.commands;
 
 import com.isetrip.jbotify.UpdatesHandler;
+import com.isetrip.jbotify.lang.Lang;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -23,7 +24,7 @@ public class CommandRegister {
         this.COMMANDS_MAP.put(commandBase.getName(), commandBase);
     }
 
-    public boolean use(UpdatesHandler updatesHandler, String line, Update update) {
+    public boolean use(UpdatesHandler updatesHandler, String line, Update update, Lang lang) {
         String command;
         String[] commandArgs;
 
@@ -39,7 +40,7 @@ public class CommandRegister {
         if (this.COMMANDS_MAP.containsKey(command)) {
             CommandBase commandBase = this.COMMANDS_MAP.get(command);
             if (commandBase.canExecute(update.getMessage().getChatId().toString())) {
-                commandBase.process(updatesHandler, commandArgs, update);
+                commandBase.process(updatesHandler, commandArgs, update, lang);
                 return true;
             }
         }
