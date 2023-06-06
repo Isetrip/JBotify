@@ -53,9 +53,12 @@ public class UpdatesHandler extends TelegramLongPollingBot {
                     .findFirst()
                     .orElse(null);
             if (user == null) {
+                String username = update.getMessage().getFrom().getUserName();
+                if (username != null)
+                    username = update.getMessage().getFrom().getFirstName();
                 user = JBUser.builder()
                         .userId(update.getMessage().getFrom().getId().toString())
-                        .userName(update.getMessage().getFrom().getUserName())
+                        .userName(username)
                         .userLang("en_UK")
                         .chatId(update.getMessage().getChatId().toString())
                         .build();
@@ -81,9 +84,12 @@ public class UpdatesHandler extends TelegramLongPollingBot {
                     .findFirst()
                     .orElse(null);
             if (user == null) {
+                String username = update.getCallbackQuery().getFrom().getUserName();
+                if (username != null)
+                    username = update.getCallbackQuery().getFrom().getFirstName();
                 user = JBUser.builder()
                         .userId(update.getCallbackQuery().getFrom().getId().toString())
-                        .userName(update.getCallbackQuery().getFrom().getUserName())
+                        .userName(username)
                         .userLang("en_UK")
                         .chatId(update.getCallbackQuery().getMessage().getChatId().toString())
                         .build();
