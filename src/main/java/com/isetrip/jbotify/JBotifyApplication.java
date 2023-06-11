@@ -68,6 +68,10 @@ public class JBotifyApplication {
             }
         });
 
+        log.info("Initialising Languages... ");
+        LangManager langManager = new LangManager();
+        langManager.loadLanguageProperties("en", "en_UK");
+
         log.info("Initialising Events Handlers... ");
         eventsRegister = new EventsRegister();
         List<Class<?>> classes = ClassScanner.findAnnotatedClasses(BotEventHandler.class, DefaultUtils.concat(new String[] { mainClazz.getPackage().getName() }, modulesLoader.getModulesPackages().toArray(new String[0])));
@@ -84,10 +88,6 @@ public class JBotifyApplication {
             }
         }
         commandRegister.registerCommandsMenu();
-
-        log.info("Initialising Languages... ");
-        LangManager langManager = new LangManager();
-        langManager.loadLanguageProperties("en", "en_UK");
 
 
         log.info("Initialising Configs... ");

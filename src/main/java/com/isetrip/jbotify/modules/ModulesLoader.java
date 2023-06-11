@@ -24,7 +24,7 @@ public class ModulesLoader {
     public void load() {
         File modulesDir = new File(this.modulesPath);
         if (!modulesDir.exists() || !modulesDir.isDirectory()) {
-            System.out.println("Modular folder not found, nothing to download!");
+            System.out.println("Modular folder not found, nothing to load!");
             return;
         }
 
