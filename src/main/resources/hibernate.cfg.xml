@@ -13,12 +13,8 @@
         <!-- Hibernate dialect -->
         <property name="hibernate.dialect">org.sqlite.hibernate.dialect.SQLiteDialect</property>
 
-
         <!-- Enable/disable logging -->
         <property name="hibernate.show_sql">true</property>
         <property name="hibernate.format_sql">true</property>
-
-        <!-- Mapping files -->
-        <mapping class="com.isetrip.jbotify.data.JBUser" />
     </session-factory>
 </hibernate-configuration>

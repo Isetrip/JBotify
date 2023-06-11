@@ -2,20 +2,20 @@ package com.isetrip.jbotify.events.elements;
 
 import com.isetrip.jbotify.JBotifyHandler;
 import com.isetrip.jbotify.events.elements.core.Event;
-import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.WebAppData;
 import lombok.Getter;
 
-public class MessageReceiveEvent extends Event {
+public class WebAppDataReceiveEvent extends Event {
 
     @Getter
     private Update update;
     @Getter
-    private Message message;
+    private WebAppData webAppData;
 
-    public MessageReceiveEvent(JBotifyHandler handler, Update update, Message message) {
+    public WebAppDataReceiveEvent(JBotifyHandler handler, Update update, WebAppData webAppData) {
         super(handler);
         this.update = update;
-        this.message = message;
+        this.webAppData = webAppData;
     }
 }

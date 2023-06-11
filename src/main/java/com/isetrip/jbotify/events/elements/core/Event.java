@@ -1,14 +1,14 @@
 package com.isetrip.jbotify.events.elements.core;
 
-import com.isetrip.jbotify.UpdatesHandler;
+import com.isetrip.jbotify.JBotifyHandler;
 import lombok.Getter;
 
 public abstract class Event {
 
     @Getter
-    private UpdatesHandler updatesHandler;
+    private JBotifyHandler handler;
 
-    public Event(UpdatesHandler updatesHandler) {
-        this.updatesHandler = updatesHandler;
+    public Event(JBotifyHandler handler) {
+        this.handler = handler;
     }
 }

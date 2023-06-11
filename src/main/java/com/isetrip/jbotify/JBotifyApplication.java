@@ -1,143 +1,152 @@
 package com.isetrip.jbotify;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.isetrip.jbotify.buttons.ButtonsRegistry;
-import com.isetrip.jbotify.buttons.IKeyboardButton;
+import com.isetrip.jbotify.analytics.AnalyticsManager;
+import com.isetrip.jbotify.annotations.*;
 import com.isetrip.jbotify.commands.CommandBase;
 import com.isetrip.jbotify.commands.CommandRegister;
-import com.isetrip.jbotify.data.BotData;
-import com.isetrip.jbotify.data.JBUser;
-import com.isetrip.jbotify.database.HibernateSet;
+import com.isetrip.jbotify.data.JBotifyConfiguration;
 import com.isetrip.jbotify.events.EventsRegister;
-import com.isetrip.jbotify.lang.Lang;
-import com.isetrip.jbotify.lang.LangManager;
-import com.isetrip.jbotify.lang.elements.English;
 import com.isetrip.jbotify.managers.ConfigurationManager;
-import com.isetrip.jbotify.root.annotations.*;
+import com.isetrip.jbotify.managers.LangManager;
+import com.isetrip.jbotify.modules.ModulesLoader;
 import com.isetrip.jbotify.utils.ClassScanner;
-import com.isetrip.jbotify.logs.*;
+import com.isetrip.jbotify.utils.DefaultUtils;
+import com.pengrad.telegrambot.TelegramBot;
 import lombok.Getter;
-import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
+import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import java.io.*;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 
+@Slf4j
 public class JBotifyApplication {
 
     @Getter
     private static EventsRegister eventsRegister;
     @Getter
-    private static UpdatesHandler updatesHandler;
+    private static JBotifyHandler handler;
     @Getter
     private static CommandRegister commandRegister;
     @Getter
-    private static LangManager langManager;
-    @Getter
-    private static ButtonsRegistry buttonsRegistry;
-    @Getter
-    private static HibernateSet<JBUser> jbUsersSet;
-    @Getter
     private static ConfigurationManager configurationManager;
+    @Getter
+    private static ModulesLoader modulesLoader;
+    @Getter
+    private static AnalyticsManager analyticsManager;
+    @Getter
+    private static TelegramBot bot;
 
-    public static void run(Class mainClazz, String... args) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, IOException, TelegramApiException {
-        Log.info("Initialising JBotify... ");
+    public static void run(Class mainClazz, String... args) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, IOException {
+        log.info("Initialising JBotify... ");
 
-        Thread.setDefaultUncaughtExceptionHandler(((thread, throwable) -> {
-            Log.error("Exception in tread " + thread.getName() + " :" + getStackTrace(throwable));
-        }));
+        log.info("Initialising ModulesLoader... ");
+        modulesLoader = new ModulesLoader();
+        modulesLoader.load();
 
-        Log.info("Loading bot data from botdat.properties file");
-        InputStream inputStream = JBotifyApplication.class.getResourceAsStream(String.format("/%s", "botdat.properties"));
+        log.info("Loading bot data from jbotify.cfg.properties file");
+        InputStream inputStream = JBotifyApplication.class.getResourceAsStream(String.format("/%s", "jbotify.cfg.properties"));
         Properties properties = new Properties();
         properties.load(inputStream);
 
-        BotData botData = BotData.builder()
-                .name(properties.getProperty("bot.name"))
-                .token(properties.getProperty("bot.token"))
+        JBotifyConfiguration botData = JBotifyConfiguration.builder()
+                .botName(properties.getProperty("bot.name"))
+                .botToken(properties.getProperty("bot.token"))
+                .analyticsAddress(properties.getProperty("analytics.address"))
+                .analyticsPort(Integer.parseInt(properties.getProperty("analytics.port")))
                 .build();
 
-        Log.info("Initialising TelegramBot... ");
-        TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
-        botsApi.registerBot(updatesHandler = new UpdatesHandler(botData));
+        log.info("Initialising TelegramBot... ");
 
-        Log.info("Initialising Events Handlers... ");
+        bot = new TelegramBot(botData.getBotToken());
+        bot.setUpdatesListener(handler = new JBotifyHandler(), e -> {
+            if (e.response() != null) {
+                log.error(e.response().description() + ": " + e.response().errorCode());
+            } else {
+                e.printStackTrace();
+            }
+        });
+
+        log.info("Initialising Events Handlers... ");
         eventsRegister = new EventsRegister();
-        List<Class<?>> classes = ClassScanner.findAnnotatedClasses(mainClazz.getPackage().getName(), BotEventHandler.class);
+        List<Class<?>> classes = ClassScanner.findAnnotatedClasses(BotEventHandler.class, DefaultUtils.concat(new String[] { mainClazz.getPackage().getName() }, modulesLoader.getModulesPackages().toArray(new String[0])));
         for (Class<?> clazz : classes) {
             eventsRegister.register(clazz);
         }
 
-        Log.info("Initialising Commands... ");
+        log.info("Initialising Commands... ");
         commandRegister = new CommandRegister();
-        classes = ClassScanner.findAnnotatedClasses(mainClazz.getPackage().getName(), RegisterCommand.class);
+        classes = ClassScanner.findAnnotatedClasses(RegisterCommand.class, DefaultUtils.concat(new String[] { mainClazz.getPackage().getName() }, modulesLoader.getModulesPackages().toArray(new String[0])));
         for (Class<?> clazz : classes) {
             if (CommandBase.class.isAssignableFrom(clazz)) {
                 commandRegister.register(((Class<? extends CommandBase>) clazz).newInstance());
             }
         }
+        commandRegister.registerCommandsMenu();
 
-        Log.info("Initialising Languages... ");
-        langManager = new LangManager();
-        langManager.loadLanguageProperties(new English());
-        classes = ClassScanner.findAnnotatedClasses(mainClazz.getPackage().getName(), RegisterLang.class);
-        for (Class<?> clazz : classes) {
-            if (Lang.class.isAssignableFrom(clazz)) {
-                langManager.loadLanguageProperties((Lang) clazz.newInstance());
-            }
-        }
-
-        Log.info("Initialising Buttons... ");
-        buttonsRegistry = new ButtonsRegistry();
-        classes = ClassScanner.findAnnotatedClasses(mainClazz.getPackage().getName(), RegisterButton.class);
-        for (Class<?> clazz : classes) {
-            if (IKeyboardButton.class.isAssignableFrom(clazz)) {
-                buttonsRegistry.register(((Class<? extends IKeyboardButton>) clazz).newInstance());
-            }
-        }
-
-        Log.info("Initialising Users Data... ");
-        jbUsersSet = new HibernateSet<>(JBUser.class);
-
-        Log.info("Initialising Configs... ");
-        configurationManager = new ConfigurationManager(ClassScanner.findAnnotatedClasses(mainClazz.getPackage().getName(), Configuration.class));
+        log.info("Initialising Languages... ");
+        LangManager langManager = new LangManager();
+        langManager.loadLanguageProperties("en", "en_UK");
 
 
-        System.out.println("    ___  ________  ________  _________  ___  ________ ___    ___          \n" +
-                "   |\\  \\|\\   __  \\|\\   __  \\|\\___   ___\\\\  \\|\\  _____\\\\  \\  /  /|___      \n" +
-                "   \\ \\  \\ \\  \\|\\ /\\ \\  \\|\\  \\|___ \\  \\_\\ \\  \\ \\  \\__/\\ \\  \\/  / /\\__\\     \n" +
-                " __ \\ \\  \\ \\   __  \\ \\  \\\\\\  \\   \\ \\  \\ \\ \\  \\ \\   __\\\\ \\    / /\\|__|     \n" +
-                "|\\  \\\\_\\  \\ \\  \\|\\  \\ \\  \\\\\\  \\   \\ \\  \\ \\ \\  \\ \\  \\_| \\/  /  /     ___   \n" +
-                "\\ \\________\\ \\_______\\ \\_______\\   \\ \\__\\ \\ \\__\\ \\__\\__/  / /      |\\  \\  \n" +
-                " \\|________|\\|_______|\\|_______|    \\|__|  \\|__|\\|__|\\___/ /       \\ \\  \\ \n" +
-                "                                                    \\|___|/        _\\/  /|\n" +
-                "                                                                  |\\___/ /\n" +
-                "                                                                  \\|___|/ ");
-        System.out.println("-: JBotify :-: v.1.0.0 :-");
+        log.info("Initialising Configs... ");
+        configurationManager = new ConfigurationManager(ClassScanner.findAnnotatedClasses(Configuration.class, DefaultUtils.concat(new String[] { mainClazz.getPackage().getName() }, modulesLoader.getModulesPackages().toArray(new String[0]))));
 
-        Log.info("JBotify is up and running and ready to go!");
+        log.info("Initialising Analytics... ");
+        analyticsManager = new AnalyticsManager(botData);
+
+        printLogo();
+
+        log.info("JBotify is up and running and ready to go!");
 
         Thread printingHook = new Thread(() -> {
-            jbUsersSet.close();
+
         });
         Runtime.getRuntime().addShutdownHook(printingHook);
     }
 
-    public static String getStackTrace(final Throwable throwable) {
-        final StringWriter sw = new StringWriter();
-        final PrintWriter pw = new PrintWriter(sw, true);
-        throwable.printStackTrace(pw);
-        return sw.getBuffer().toString();
+    public static void main(String... args) throws IOException {
+        log.info("Loading data from jbotify.cfg.properties file");
+        InputStream inputStream = JBotifyApplication.class.getResourceAsStream(String.format("/%s", "jbotify.cfg.properties"));
+        Properties properties = new Properties();
+        properties.load(inputStream);
+
+        JBotifyConfiguration botData = JBotifyConfiguration.builder()
+                .botName(properties.getProperty("bot.name"))
+                .botToken(properties.getProperty("bot.token"))
+                .analyticsAddress(properties.getProperty("analytics.address"))
+                .analyticsPort(Integer.parseInt(properties.getProperty("analytics.port")))
+                .build();
+
+        analyticsManager = new AnalyticsManager(botData);
     }
+
+    public static void printLogo() {
+        System.out.println("                       +##*.                                                                                                                          \n" +
+                        "                      :####=                                                                                                                          \n" +
+                        "                       .-=:                                                                                                                           \n" +
+                        "                                                                                                                                                      \n" +
+                        "                :-=+*#########*+=-.                                                                                                                   \n" +
+                        "            :=*#####################*=.                                                                                                               \n" +
+                        "         .=#############################=.                                                                                  ...                       \n" +
+                        "       :+#################################+.                 .====.  :========-:.                              :+**=     =#####-                      \n" +
+                        "     .+#####################################=                .####-  +############=                   :****    =####    ####*==.                      \n" +
+                        "    :#########################################:              .####-  +####::::=####+        ...       -####     .:.    :####:                         \n" +
+                        "   -#####%%@@%%%%################%%%%%%%#######:             .####-  +####     +###*    -+######*-  .########- -#### :#########-####:   =####.        \n" +
+                        "  -####%@@@@@@@@@@%%%%#######%%%@@@@@@@@@%######:            .####-  +####----+###*.   *###*==*####. =+####==. -#### .=+####+== +###*  .####-         \n" +
+                        " .####%@@@@%%@%%@@@@@@@%%%%@@@@@@@%%%%%%@@@%#####            .####-  +###########*-   =####    =###*  -####    -####   :####.    *###- +###+          \n" +
+                        " +####@@@%#%@%#@%%%@@@@@@@@@@@@%%@#%@%%%@@@@%####=           .####-  +####    .+###*  *###+    -####  -####    -####   :####.    :####-####.          \n" +
+                        " ####%@@@@@%%%@%%%%@@@@@@@@@@@%%%%#@@%@@@@@@%#####   =+++=   :####:  +####     -####: =###*    =###*  -####    -####   :####.     +#######:           \n" +
+                        ":####@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@#####.  -####+-=####+   +####===++####*   *###*--+####:  :####=-: -####   :####.      *#####+            \n" +
+                        ":###%@@@@@@@@@@@@@%#############%@@@@@@@@@@@@#####.   :+#######*-    +###########+-     -*#######=.    =#####= -####   :####.      :#####             \n" +
+                        ":#####%@@@@@@@@@@#..............:@@@@@@@@@@%%####+       ..:..        .........            .::.          .::.   ....    ....        ####:             \n" +
+                        " #######%%%%%@@@@%*+++++++++++++#@@%%%%%%%##+=:.                                                                                 =+*###=              \n" +
+                        " =###################%%%%%%%##########*+-:                                                                                       *###*-               \n" +
+                        "  :=*##########################*+=-:.                                                                                                                 \n" +
+                        "      .:=+*###########**+=--:.                                                                                                                        \n" +
+                        "              ...           ");
+        System.out.println("-: JBotify :-: v.1.0.0 :-");
+    }
+
 }

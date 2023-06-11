@@ -28,9 +28,7 @@ To get started with JBotify, follow these steps:
 Add the following dependency to your `build.gradle` file:
 
 ```groovy
-dependencies {
-    implementation files('libs/JBotify-1.1.0-SHAPSHOT-sources.jar')
-}
+
 ```
 
 ### Maven
@@ -38,22 +36,12 @@ dependencies {
 Add the following dependency to your `pom.xml` file:
 
 ```xml
-<dependencies>
-    <dependency>
-        <groupId>com.isetrip</groupId>
-        <artifactId>JBotify-SHAPSHOT</artifactId>
-        <version>1.1.0</version>
-        <scope>system</scope>
-        <systemPath>${basedir}/libs/JBotify-1.1.0-SHAPSHOT-sources.jar</systemPath>
-    </dependency>
-</dependencies>
-
 
 ```
 
 ### Usage
 
-Examples and documentation can be found on the [GitHub repository](https://github.com/Isetrip/JBotify/tree/main/src/main/java/com/isetrip/jbotify/examples).
+Examples and documentation can be found on the [GitHub repository](https://github.com/Isetrip/JBotify/tree/main/src/main/java/com/isetrip/examplebot).
 
 ### Issues
 

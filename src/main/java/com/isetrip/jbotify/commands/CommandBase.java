@@ -1,19 +1,17 @@
 package com.isetrip.jbotify.commands;
 
-import com.isetrip.jbotify.UpdatesHandler;
-import com.isetrip.jbotify.lang.Lang;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.User;
 
 public interface CommandBase {
 
     public String getName();
 
-    public String getUsage();
+    public String getDescription(String lang);
 
-    public String getApplying(Lang lang);
+    public boolean canExecute(String chatId);
 
-    public boolean canExecute(String id);
-
-    public void process(UpdatesHandler updatesHandler, String[] args, Update update, Lang lang);
+    public void process(Update update, TelegramBot bot);
 
 }

@@ -1,12 +1,11 @@
 package com.isetrip.jbotify.events.elements;
 
-import com.isetrip.jbotify.UpdatesHandler;
-import com.isetrip.jbotify.data.JBUser;
+import com.isetrip.jbotify.JBotifyHandler;
 import com.isetrip.jbotify.events.elements.core.Event;
+import com.pengrad.telegrambot.model.CallbackQuery;
+import com.pengrad.telegrambot.model.Message;
+import com.pengrad.telegrambot.model.Update;
 import lombok.Getter;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 
 public class CallbackQueryEvent extends Event {
 
@@ -16,17 +15,11 @@ public class CallbackQueryEvent extends Event {
     private Message message;
     @Getter
     private CallbackQuery callbackQuery;
-    @Getter
-    private String chatId;
-    @Getter
-    private JBUser jbUser;
 
-    public CallbackQueryEvent(UpdatesHandler updatesHandler, Update update, CallbackQuery callbackQuery, String chatId, JBUser jbUser) {
-        super(updatesHandler);
+    public CallbackQueryEvent(JBotifyHandler handler, Update update, CallbackQuery callbackQuery) {
+        super(handler);
         this.update = update;
         this.callbackQuery = callbackQuery;
-        this.message = callbackQuery.getMessage();
-        this.chatId = chatId;
-        this.jbUser = jbUser;
+        this.message = callbackQuery.message();
     }
 }

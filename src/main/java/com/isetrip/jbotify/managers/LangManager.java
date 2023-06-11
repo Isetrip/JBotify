@@ -1,54 +1,60 @@
-package com.isetrip.jbotify.lang;
-
-import com.isetrip.jbotify.JBotifyApplication;
+package com.isetrip.jbotify.managers;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 
 public class LangManager {
+
+    private static LangManager instance;
     private static final String LANG_DIR = "lang";
     private static final String FILE_EXTENSION = ".lang";
     private final Map<String, Properties> langProperties;
-    private final Map<String, Lang> langs;
+    private final Map<String, String> langs;
 
     public LangManager() {
         this.langProperties = new HashMap<>();
         this.langs = new HashMap<>();
+        instance = this;
     }
 
-    public String getMessage(Lang lang, String name) {
-        Properties properties = langProperties.get(lang.name());
+    public String getMessage(String lang, String name) {
+        Properties properties = this.langProperties.get(this.langs.getOrDefault(lang, "en"));
         if (properties != null) {
             return properties.getProperty(name);
         }
         return null;
     }
 
-    public void loadLanguageProperties(Lang lang) {
-        InputStream inputStream = JBotifyApplication.class.getResourceAsStream(String.format("/%s/%s%s", LANG_DIR, lang.name(), FILE_EXTENSION));
+    public void loadLanguageProperties(String lang, String file) {
+        InputStream inputStream = LangManager.class.getResourceAsStream(String.format("/%s/%s%s", LANG_DIR, file, FILE_EXTENSION));
 
         Properties properties = new Properties();
         try {
             InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
             properties.load(reader);
-            this.langProperties.put(lang.name(), properties);
-            this.langs.put(lang.name(), lang);
+            this.langProperties.put(file, properties);
+            this.langs.put(lang, file);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public Collection<Lang> getLangs() {
+    public Set<String> getLangs() {
+        return this.langs.keySet();
+    }
+
+    public Collection<String> getLangFiles() {
         return this.langs.values();
     }
 
-    public Lang get(String lang) {
-        return this.langs.get(lang);
+    public String getLangFile(String lang) {
+        return this.langs.getOrDefault(lang, "en_UK");
     }
 
+    public static LangManager getInstance() {
+        return instance;
+    }
 }

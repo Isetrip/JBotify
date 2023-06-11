@@ -1,11 +1,13 @@
 package com.isetrip.jbotify.database;
 
+import javax.persistence.Entity;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
 import java.io.Serializable;
 import java.util.*;
@@ -17,7 +19,19 @@ public final class HibernateSet<E> implements Set<E> {
 
     public HibernateSet(Class<E> entityType) {
         this.entityType = entityType;
-        this.sessionFactory = new Configuration().configure().buildSessionFactory();
+
+        StandardServiceRegistryBuilder registry = new StandardServiceRegistryBuilder();
+
+        MetadataSources sources;
+
+        if (entityType.isAnnotationPresent(Entity.class)) {
+            sources = new MetadataSources(registry.configure().build());
+            sources.addAnnotatedClass(entityType);
+        } else {
+            sources = new MetadataSources(registry.configure("hibernate.cfg.xml").build());
+        }
+
+        this.sessionFactory = sources.buildMetadata().buildSessionFactory();
     }
 
     @Override
@@ -241,17 +255,24 @@ public final class HibernateSet<E> implements Set<E> {
         }
     }
 
-    public boolean update(E entity) {
+    public E update(E entity) {
         Session session = sessionFactory.openSession();
         try {
             session.beginTransaction();
-            session.merge(entity);
+
+            E existingEntity = session.get(entityType, ((Serializable) entity));
+            if (existingEntity != null) {
+                session.merge(entity);
+            } else {
+                session.save(entity);
+            }
+
             session.getTransaction().commit();
-            return true;
+            return entity;
         } catch (Exception ex) {
             session.getTransaction().rollback();
             ex.printStackTrace();
-            return false;
+            return null;
         } finally {
             session.close();
         }
@@ -261,5 +282,3 @@ public final class HibernateSet<E> implements Set<E> {
         sessionFactory.close();
     }
 }
-
-

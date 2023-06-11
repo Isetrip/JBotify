@@ -10,23 +10,25 @@ import java.util.List;
 
 public class ClassScanner {
 
-    public static List<Class<?>> findAnnotatedClasses(String packageName, Class<? extends Annotation> annotation) {
+    public static List<Class<?>> findAnnotatedClasses(Class<? extends Annotation> annotation, String... packageNames) {
         List<Class<?>> annotatedClasses = new ArrayList<>();
 
-        String packagePath = packageName.replace('.', '/');
-        try {
-            Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources(packagePath);
-            while (resources.hasMoreElements()) {
-                URL resource = resources.nextElement();
-                File file = new File(resource.getFile());
-                if (file.isDirectory()) {
-                    scanDirectory(packageName, file, annotation, annotatedClasses);
-                } else if (file.getName().endsWith(".class")) {
-                    scanClassFile(packageName, file, annotation, annotatedClasses);
+        for (String packageName : packageNames) {
+            String packagePath = packageName.replace('.', '/');
+            try {
+                Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources(packagePath);
+                while (resources.hasMoreElements()) {
+                    URL resource = resources.nextElement();
+                    File file = new File(resource.getFile());
+                    if (file.isDirectory()) {
+                        scanDirectory(packageName, file, annotation, annotatedClasses);
+                    } else if (file.getName().endsWith(".class")) {
+                        scanClassFile(packageName, file, annotation, annotatedClasses);
+                    }
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
         return annotatedClasses;

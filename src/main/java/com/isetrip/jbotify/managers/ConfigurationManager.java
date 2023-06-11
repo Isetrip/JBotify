@@ -1,47 +1,42 @@
 package com.isetrip.jbotify.managers;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.isetrip.jbotify.root.annotations.Configuration;
-import com.isetrip.jbotify.root.annotations.Value;
-import com.isetrip.jbotify.utils.ClassScanner;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStreamReader;
+import com.isetrip.jbotify.annotations.Configuration;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.*;
 import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+@Slf4j
 public class ConfigurationManager {
 
-    private final Gson gson;
+    private final ObjectMapper objectMapper;
 
-    public ConfigurationManager(List<Class<?>> classes) throws FileNotFoundException, IllegalAccessException {
-        this.gson = new Gson();
+    public ConfigurationManager(List<Class<?>> classes) throws IllegalAccessException {
+        this.objectMapper = new ObjectMapper();
         for (Class<?> clazz : classes) {
             loadConfiguration(clazz);
         }
     }
 
-    public void loadConfiguration(Class<?> clazz) throws FileNotFoundException, IllegalAccessException {
+    public void loadConfiguration(Class<?> clazz) throws IllegalAccessException {
         Configuration configurationAnnotation = clazz.getAnnotation(Configuration.class);
         if (configurationAnnotation != null) {
             String file = configurationAnnotation.configFile();
             File config = new File(file);
             if (!config.exists()) return;
-            Object obj = JsonParser.parseReader(new InputStreamReader(new FileInputStream(config), StandardCharsets.UTF_8));
-            JsonObject items = (JsonObject) obj;
-            Field[] fields = clazz.getDeclaredFields();
-            for (Field field : fields) {
-                if (field.isAnnotationPresent(Value.class)) {
-                    Value confValue = field.getAnnotation(Value.class);
+            try {
+                Object obj = objectMapper.readValue(config, clazz);
+                Field[] fields = clazz.getDeclaredFields();
+                for (Field field : fields) {
                     field.setAccessible(true);
-                    Object value = gson.fromJson(items.get(confValue.name()), field.getType());
+                    Object value = objectMapper.convertValue(obj, field.getType());
                     field.set(clazz, value);
                 }
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
             }
         }
     }

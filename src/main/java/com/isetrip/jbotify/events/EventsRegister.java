@@ -1,7 +1,7 @@
 package com.isetrip.jbotify.events;
 
+import com.isetrip.jbotify.annotations.BotEventHandler;
 import com.isetrip.jbotify.events.elements.core.Event;
-import com.isetrip.jbotify.root.annotations.BotEventHandler;
 import com.isetrip.jbotify.utils.MethodFinder;
 
 import java.lang.reflect.Constructor;

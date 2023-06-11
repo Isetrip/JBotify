@@ -1,32 +1,15 @@
 package com.isetrip.jbotify.utils;
 
-import com.isetrip.jbotify.JBotifyApplication;
-import com.isetrip.jbotify.lang.Lang;
-
-import java.util.HashSet;
-import java.util.Set;
+import com.isetrip.jbotify.managers.LangManager;
+import com.pengrad.telegrambot.model.User;
 
 public class LangUtils {
 
-    public static Lang getLangFromButton(String text) {
-        for (Lang lang : JBotifyApplication.getLangManager().getLangs())
-            if (lang.button().equals(text)) return lang;
-        return null;
+    public static String get(String lang, String key) {
+        return LangManager.getInstance().getMessage(lang, key);
     }
 
-    public static String[] getLangsButtons() {
-        Set<String> result = new HashSet<>();
-        for (Lang lang : JBotifyApplication.getLangManager().getLangs())
-            result.add(lang.button());
-        return result.toArray(new String[0]);
+    public static String get(User user, String key) {
+        return get(user.languageCode(), key);
     }
-
-    public static String get(Lang lang, String key) {
-        return JBotifyApplication.getLangManager().getMessage(lang, key);
-    }
-
-    public static Lang of(String key) {
-        return JBotifyApplication.getLangManager().get(key);
-    }
-
 }
