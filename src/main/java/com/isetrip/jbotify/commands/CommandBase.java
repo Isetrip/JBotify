@@ -10,7 +10,7 @@ public interface CommandBase {
 
     public String getDescription(String lang);
 
-    public boolean canExecute(String chatId);
+    public boolean canExecute(String userId);
 
     public void process(Update update, TelegramBot bot);
 

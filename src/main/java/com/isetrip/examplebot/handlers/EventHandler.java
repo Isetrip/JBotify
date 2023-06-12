@@ -6,6 +6,9 @@ import com.isetrip.jbotify.events.elements.MessageReceiveEvent;
 @BotEventHandler
 public class EventHandler {
 
+    @BotEventHandler.Listener
+    public void onMsg(MessageReceiveEvent event) {
 
+    }
 
 }

@@ -1,8 +1,10 @@
 package com.isetrip.jbotify.managers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.isetrip.jbotify.annotations.Configuration;
+import com.isetrip.jbotify.annotations.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
@@ -17,26 +19,30 @@ public class ConfigurationManager {
     public ConfigurationManager(List<Class<?>> classes) throws IllegalAccessException {
         this.objectMapper = new ObjectMapper();
         for (Class<?> clazz : classes) {
-            loadConfiguration(clazz);
+            try {
+                loadConfiguration(clazz);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
-    public void loadConfiguration(Class<?> clazz) throws IllegalAccessException {
+    public void loadConfiguration(Class<?> clazz) throws IllegalAccessException, IOException {
         Configuration configurationAnnotation = clazz.getAnnotation(Configuration.class);
         if (configurationAnnotation != null) {
             String file = configurationAnnotation.configFile();
             File config = new File(file);
             if (!config.exists()) return;
-            try {
-                Object obj = objectMapper.readValue(config, clazz);
-                Field[] fields = clazz.getDeclaredFields();
-                for (Field field : fields) {
-                    field.setAccessible(true);
-                    Object value = objectMapper.convertValue(obj, field.getType());
-                    field.set(clazz, value);
-                }
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
+            JsonNode jsonNode = objectMapper.readTree(config);
+            Field[] fields = clazz.getDeclaredFields();
+            for (Field field : fields) {
+                if (!field.isAnnotationPresent(Value.class)) continue;
+                field.setAccessible(true);
+                String valueName = field.getAnnotation(Value.class).value();
+                if (!jsonNode.has(valueName)) continue;
+                JsonNode obj = jsonNode.get(valueName);
+                Object value = objectMapper.convertValue(obj, field.getType());
+                field.set(clazz, value);
             }
         }
     }

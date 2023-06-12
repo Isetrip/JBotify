@@ -12,16 +12,14 @@ public class LangManager {
     private static final String LANG_DIR = "lang";
     private static final String FILE_EXTENSION = ".lang";
     private final Map<String, Properties> langProperties;
-    private final Map<String, String> langs;
 
     public LangManager() {
         this.langProperties = new HashMap<>();
-        this.langs = new HashMap<>();
         instance = this;
     }
 
     public String getMessage(String lang, String name) {
-        Properties properties = this.langProperties.get(this.langs.getOrDefault(lang, "en"));
+        Properties properties = this.langProperties.get(lang);
         if (properties != null) {
             return properties.getProperty(name);
         }
@@ -36,22 +34,17 @@ public class LangManager {
             InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
             properties.load(reader);
             this.langProperties.put(file, properties);
-            this.langs.put(lang, file);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public Set<String> getLangs() {
-        return this.langs.keySet();
-    }
-
-    public Collection<String> getLangFiles() {
-        return this.langs.values();
+        return this.langProperties.keySet();
     }
 
     public String getLangFile(String lang) {
-        return this.langs.getOrDefault(lang, "en_UK");
+        return this.langProperties.containsKey(lang) ? lang : "en";
     }
 
     public static LangManager getInstance() {

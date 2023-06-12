@@ -6,6 +6,7 @@ import com.isetrip.jbotify.commands.CommandBase;
 import com.isetrip.jbotify.commands.CommandRegister;
 import com.isetrip.jbotify.data.JBotifyConfiguration;
 import com.isetrip.jbotify.events.EventsRegister;
+import com.isetrip.jbotify.events.elements.LanguagesRegistryEvent;
 import com.isetrip.jbotify.managers.ConfigurationManager;
 import com.isetrip.jbotify.managers.LangManager;
 import com.isetrip.jbotify.modules.ModulesLoader;
@@ -51,26 +52,10 @@ public class JBotifyApplication {
         properties.load(inputStream);
 
         JBotifyConfiguration botData = JBotifyConfiguration.builder()
-                .botName(properties.getProperty("bot.name"))
                 .botToken(properties.getProperty("bot.token"))
                 .analyticsAddress(properties.getProperty("analytics.address"))
                 .analyticsPort(Integer.parseInt(properties.getProperty("analytics.port")))
                 .build();
-
-        log.info("Initialising TelegramBot... ");
-
-        bot = new TelegramBot(botData.getBotToken());
-        bot.setUpdatesListener(handler = new JBotifyHandler(), e -> {
-            if (e.response() != null) {
-                log.error(e.response().description() + ": " + e.response().errorCode());
-            } else {
-                e.printStackTrace();
-            }
-        });
-
-        log.info("Initialising Languages... ");
-        LangManager langManager = new LangManager();
-        langManager.loadLanguageProperties("en", "en_UK");
 
         log.info("Initialising Events Handlers... ");
         eventsRegister = new EventsRegister();
@@ -78,6 +63,11 @@ public class JBotifyApplication {
         for (Class<?> clazz : classes) {
             eventsRegister.register(clazz);
         }
+
+        log.info("Initialising Languages... ");
+        LangManager langManager = new LangManager();
+        langManager.loadLanguageProperties("en", "en_UK");
+        eventsRegister.publish(new LanguagesRegistryEvent(langManager));
 
         log.info("Initialising Commands... ");
         commandRegister = new CommandRegister();
@@ -87,14 +77,24 @@ public class JBotifyApplication {
                 commandRegister.register(((Class<? extends CommandBase>) clazz).newInstance());
             }
         }
-        commandRegister.registerCommandsMenu();
-
 
         log.info("Initialising Configs... ");
         configurationManager = new ConfigurationManager(ClassScanner.findAnnotatedClasses(Configuration.class, DefaultUtils.concat(new String[] { mainClazz.getPackage().getName() }, modulesLoader.getModulesPackages().toArray(new String[0]))));
 
         log.info("Initialising Analytics... ");
         analyticsManager = new AnalyticsManager(botData);
+
+        log.info("Initialising TelegramBot... ");
+        bot = new TelegramBot(botData.getBotToken());
+        bot.setUpdatesListener(handler = new JBotifyHandler(), e -> {
+            if (e.response() != null) {
+                log.error(e.response().description() + ": " + e.response().errorCode());
+            } else {
+                e.printStackTrace();
+            }
+        });
+
+        commandRegister.registerCommandsMenu();
 
         printLogo();
 
@@ -104,22 +104,6 @@ public class JBotifyApplication {
 
         });
         Runtime.getRuntime().addShutdownHook(printingHook);
-    }
-
-    public static void main(String... args) throws IOException {
-        log.info("Loading data from jbotify.cfg.properties file");
-        InputStream inputStream = JBotifyApplication.class.getResourceAsStream(String.format("/%s", "jbotify.cfg.properties"));
-        Properties properties = new Properties();
-        properties.load(inputStream);
-
-        JBotifyConfiguration botData = JBotifyConfiguration.builder()
-                .botName(properties.getProperty("bot.name"))
-                .botToken(properties.getProperty("bot.token"))
-                .analyticsAddress(properties.getProperty("analytics.address"))
-                .analyticsPort(Integer.parseInt(properties.getProperty("analytics.port")))
-                .build();
-
-        analyticsManager = new AnalyticsManager(botData);
     }
 
     public static void printLogo() {
@@ -146,7 +130,7 @@ public class JBotifyApplication {
                         "  :=*##########################*+=-:.                                                                                                                 \n" +
                         "      .:=+*###########**+=--:.                                                                                                                        \n" +
                         "              ...           ");
-        System.out.println("-: JBotify :-: v.1.0.0 :-");
+        System.out.println("-: JBotify :-: v. 2.2.9 :-");
     }
 
 }

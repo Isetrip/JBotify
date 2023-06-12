@@ -15,6 +15,7 @@ import java.util.List;
 @Slf4j
 public class JBotifyHandler implements UpdatesListener {
 
+    @Override
     public int process(List<Update> updates) {
         updates.forEach(this::process);
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
@@ -30,9 +31,8 @@ public class JBotifyHandler implements UpdatesListener {
                 for (MessageEntity entity : entities) {
                     if (entity.type() != MessageEntity.Type.bot_command) continue;
                     String result = message.text().substring(entity.offset() + 1, entity.offset() + entity.length());
-                    if (!JBotifyApplication.getCommandRegister().use(result, update)) {
+                    if (!JBotifyApplication.getCommandRegister().use(result, update))
                         JBotifyApplication.getEventsRegister().publish(new UnknownCommandEvent(this, update, update.message()));
-                    }
                 }
             } else {
                 JBotifyApplication.getEventsRegister().publish(new MessageReceiveEvent(this, update, update.message()));
