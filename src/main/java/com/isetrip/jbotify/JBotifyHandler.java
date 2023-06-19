@@ -5,6 +5,7 @@ import com.isetrip.jbotify.events.elements.CallbackQueryEvent;
 import com.isetrip.jbotify.events.elements.MessageReceiveEvent;
 import com.isetrip.jbotify.events.elements.UnknownCommandEvent;
 import com.isetrip.jbotify.events.elements.WebAppDataReceiveEvent;
+import com.isetrip.jbotify.managers.CustomUpdateActionManager;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.*;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,8 @@ public class JBotifyHandler implements UpdatesListener {
     }
 
     public void process(Update update) {
+        if (CustomUpdateActionManager.getInstance().act(update))
+            return;
         if (update.message() != null) {
             Message message = update.message();
             if (message.webAppData() != null) {

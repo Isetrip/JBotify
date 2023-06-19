@@ -14,8 +14,8 @@ public class LanguagesRegistryEvent extends Event {
         this.langManager = langManager;
     }
 
-    public void register(String lang, String file) {
-        this.langManager.loadLanguageProperties(lang, file);
+    public void register(String lang) {
+        this.langManager.loadLanguageProperties(lang);
     }
 
 }

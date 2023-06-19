@@ -91,4 +91,7 @@ public class AnalyticsManager {
     }
 
 
+    public void shutdown() {
+        this.server.stop(0);
+    }
 }

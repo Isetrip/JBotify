@@ -26,7 +26,7 @@ public class LangManager {
         return null;
     }
 
-    public void loadLanguageProperties(String lang, String file) {
+    public void loadLanguageProperties(String file) {
         InputStream inputStream = LangManager.class.getResourceAsStream(String.format("/%s/%s%s", LANG_DIR, file, FILE_EXTENSION));
 
         Properties properties = new Properties();
@@ -43,7 +43,7 @@ public class LangManager {
         return this.langProperties.keySet();
     }
 
-    public String getLangFile(String lang) {
+    public String getLang(String lang) {
         return this.langProperties.containsKey(lang) ? lang : "en";
     }
 
