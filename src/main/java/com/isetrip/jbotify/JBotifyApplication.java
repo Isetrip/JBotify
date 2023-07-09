@@ -277,7 +277,7 @@ public class JBotifyApplication {
                         "  :=*##########################*+=-:.                                                                                                                 \n" +
                         "      .:=+*###########**+=--:.                                                                                                                        \n" +
                         "              ...           ");
-        System.out.println("-: JBotify :-: v. 2.2.15 :-");
+        System.out.println("-: JBotify :-: v. 2.2.16 :-");
     }
 
 }
